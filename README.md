@@ -5,5 +5,8 @@ The study investigates whether age is a significant predictor of BMI and evaluat
 
 This workflow demonstrates a reproducible analytical approach in which computation and reporting are integrated, minimizing manual errors and ensuring consistency between analysis output and interpretation.
 
+## Assumptions
+This analysis assumes that all required R packages have been pre-installed in the user’s R environment prior to execution. The `library()` function is used only to load existing packages. If a package is not available, it should be installed using `install.packages()` before running the analysis.
+
 ## Live Report
 https://lyddy01.github.io/bmi-regression-analysis/
