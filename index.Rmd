@@ -1,0 +1,287 @@
+---
+title: "<div style='text-align: center;'>A Linear Regression Analysis of the Age–BMI Relationship</div>"
+author: "<div style='text-align: center;'>by Lydia Oyediran</div>"
+date: "<div style='text-align: center;'>Project Completion Date: `r Sys.Date()`</div>"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    fig_caption: true
+---
+
+## Introduction
+
+This document demonstrates the process of generating a simulated data set and visualizing the relationship between **age** and **Body Mass Index (BMI)** using **R**. The analysis involves creating hypothetical observations for height, weight, and age, calculating BMI, performing a linear regression analysis, and producing a scatter plot with a regression line. The goal is to illustrate a simple workflow for data generation, transformation, analysis, and visualization in R using the **tidyverse** and **ggplot2** packages.
+
+## Work Flow
+
+### 1. Loading Required Packages
+
+The analysis utilised packages such as **dplyr** for data manipulation and **ggplot2** for data visualisation, which are all available within the **tidyverse ecosystem**. So, rather than load the individual packages, I loaded only the tidyverse package.
+
+The **ggpmisc** package was used to add the regression equation and R² values directly on the scatter plot.
+
+```{r}
+library("tidyverse")
+library("ggpmisc")
+```
+
+### 2. Setting Seed for Reproducibility
+
+Because I aimed to generate random numbers for the variables, height and weight, I used the `set.seed()` function to ensure that random numbers generated in this analysis remain the same every time the code is run. Since this document is intended to be shared, the use of the function `set.seed()` ensures that readers obtain the same random numbers.
+
+```{r}
+                          set.seed(123)
+```
+
+### 3. Height Data Generation
+
+A sequence of possible heights ranging from 2 to 6.5 feet was first created using the `seq()` function with increments of 0.1 feet. Height values were then generated randomly using the `sample()` function.From this sequence, 15 observations were randomly selected with replacement to simulate observations for this hypothetical study.
+
+The argument `replace = True` allows the same value to be selected more than once.
+
+```{r}
+      height<-sample(seq(from=2, by=0.1, to=6.5), size=15, replace=TRUE)
+```
+
+### 4. Converting Height from Feet to Meters
+
+Because BMI calculations require height in meters, the generated height values were converted from feet to meters.
+
+The conversion factor used was:
+
+```         
+           1 foot = 0.3048 meters
+```
+
+Each height value was multiplied by **0.3048**.
+
+```{r}
+          height <- height * 0.3048
+```
+
+### 5. Weight Data Generation
+
+A vector of weight values was created to represent the body weight of respondents. Weights ranged from 23 kg to 75.5 kg, increasing in increments of 0.5 kg. Similar to the height generation process, 15 observations were randomly sampled with replacement.
+
+```{r}
+ weight <- sample(seq(from = 23, by = 0.5, to = 75.5), size = 15, replace = TRUE) 
+
+weight
+```
+
+### 6. Defining Age Values
+
+The ages of the respondents were then specified manually using the `c()` function. This vector contained 15 age values, corresponding to the number of individuals in the data set.
+
+```{r}
+      age <- c(28, 35, 19, 44, 50, 23, 29, 41, 38, 22, 36, 57, 48, 31, 25)
+      
+      age
+```
+
+### 7. Creating a Data Frame
+
+The vectors for **height**, **weight**, and **age** were combined into a single data frame using the `data.frame()` function. This structure allows the variables to be organized in tabular format where each row represents a respondent and each column represents a variable.
+
+The data frame was stored in a variable named **resp**.
+
+```{r}
+  resp <- data.frame(height, weight, age)
+
+  resp
+```
+
+### 8. Calculating Body Mass Index
+
+BMI was calculated using the standard formula: $$BMI = \frac{weight}{height^2}$$
+
+Weight was measured in kilograms and height in meters.The BMI values were added as a new column in the data set.
+
+```{r}
+       resp$BMI <- resp$weight / (resp$height^2)
+
+```
+
+### 9. Rounding the BMI Values
+
+For clarity and consistency, BMI values were rounded to two decimal places using the `round()` function.
+
+```{r}
+       resp$BMI <- round(resp$BMI, 2)
+```
+
+### 10. Renaming the BMI Variable
+
+The BMI variable was renamed from BMI to bmi using the `rename()` function.
+
+```{r}
+resp <- resp |>
+  rename(bmi = BMI)
+```
+
+### 11. Selecting Variables for Analysis
+
+Only the variables relevant to the regression analysis (age and bmi) were retained using the `select()` function.
+
+```{r}
+resp <- resp |>
+  select(c(age, bmi))
+
+```
+
+### N/B
+
+It is worth noting that the data set could have been subsetted using base R functions such as `subset()` to select only the variables required for the visualisation. Similarly, column names could have been modified using the `colnames()` function.
+
+I could also have continued the analysis using the original data frame without creating a reduced version of the data set. However, the tidyverse approach was intentionally used to manipulate the data.
+
+### 12. Performing Linear Regression Analysis
+
+Simple linear regression analysis was carried out to understand how Body Mass Index (BMI) changes with age.
+
+```{r}
+rlm <- lm(bmi ~ age, data = resp)
+```
+
+-   The lm() is the core function for fitting a linear model.
+-   bmi \~ age: This formula tells R that **bmi** is the **dependent variable (response)** and **age** is the **independent variable (predictor)**.
+-   data = resp: This tells R to look for the variables bmi and age inside a data set named **resp**.
+
+### 13. Linear regression result
+
+The summary() function displays the regression result including the regression coefficients, R², and p-values.
+
+```{r}
+rlm_summary<-summary(rlm)
+
+rlm_summary
+```
+
+<div style="float: right; width: 30%; font-size: 0.9em; background-color: #f8f9fa; padding: 12px; margin: 10px 0 10px 15px; border-left: 4px solid #007bff;">
+<strong>Note:</strong> The regression equation, coefficients, p-values, and model statistics reported here were dynamically extracted from <code>rlm_summary</code> and inserted into the text using inline R code. This ensures that any changes to the data set, model specification, or random seed are automatically reflected in the output, eliminating the need for manual updates.
+</div>
+
+### 14. Interpretation of Result
+
+The fitted regression model is expressed as:
+
+$$BMI = `r round(rlm_summary$coefficients[1,1],2)` + `r round(rlm_summary$coefficients[2,1],2)` × Age$$
+
+The regression analysis indicates a positive relationship between age and BMI, as reflected by the slope coefficient `r round(rlm_summary$coefficients[2,1],2)`. This suggest that, on average, BMI is expected to increase by approximately `r round(rlm_summary$coefficients[2,1],2)` units for every one-year increase in age. However, this relationship is not statistically significant (p= `r round(rlm_summary$coefficients[2,4],3)`), indicating that there is insufficient evidence to conclude that age has a meaningful effect on BMI in this data set.
+
+The intercept (`r round(rlm_summary$coefficients[,1][1],2)`) represents the estimated BMI when age is zero. Although this provides the baseline level of BMI in the regression equation, it has limited practical interpretation in this context and is also not statistically significant (p= `r round(rlm_summary$coefficients[1,4],3)`).
+
+The coefficient of determination measures the proportion of variation in BMI explained by age. For this study, an $R^2$ value of `r round(rlm_summary$r.squared,2)` implies that approximately `r round(rlm_summary$r.squared*100,2)`% of the variability in BMI is accounted for by age, while the remaining `r 100- round(rlm_summary$r.squared*100,2)`% is due to other factors not included in the model. This indicates that age is a weak predictor of BMI.
+
+The F-statistic (`r round(rlm_summary$fstatistic[1],2)`, p = `r round(pf(rlm_summary$fstatistic[1], rlm_summary$fstatistic[2], rlm_summary$fstatistic[3], lower.tail = FALSE), 3)`) tests the overall significance of the regression model. In this case, the model is not statistically significant, indicating that age does not significantly improve the prediction of BMI compared to a model with no predictors.
+
+
+### 15. Creating A Scatter Plot
+
+A scatter plot was created using the ggplot2 package to visualize the relationship between age and BMI.
+
+-   The `ggplot()` function initializes the plot and defines the data set and aesthetic mappings.
+
+-   Individual observations were displayed using `geom_point()`.
+
+-   The `geom_smooth()` function was used to add a straight line of best fit to the plot in order to visualize the trends in the data set.
+
+```{r}
+rp <- ggplot(resp, aes(x = age, y = bmi)) +
+  geom_point() +
+  geom_smooth(method = lm, colour = "red", linewidth = 1.2)
+```
+
+### 16. Adding Regression Equation and R² Value
+
+The regression equation and $R^{2}$ were added using the `stat_poly_eq()` function from the **ggpmisc** package.
+
+```{r}
+rp<-rp+ stat_poly_eq(
+    aes(
+      label= paste(
+        after_stat(eq.label),
+        after_stat(rr.label),
+        sep = "~~~")),
+    formula = y~x,
+    parse = TRUE,
+    label.x = "right", 
+    label.y = "top"     
+  )
+```
+
+### 17. Add Axis Limits and Labels
+
+The `scale_x_continuous()` and `scale_y_continuous()` functions extends the default axis limits and set it to my preferred choice.
+
+The `labs()` function helps to name the axis labels and plot title. This overrides the default axis name derived from the column name in the tibble called `resp`.
+
+```{r}
+rp<- rp + 
+  scale_x_continuous(limits=c(15,60))+
+  scale_y_continuous(limits=c(0,150))+
+  labs(
+    x= "Age (years)",
+    y =  "BMI (Kg/m²)",
+    title="SCATTER PLOT OF  BMI VS AGE"
+  )
+```
+
+### 18. Theme Customization
+
+The `theme()` function customizes the visual appearance of the plot. The axis titles, plot title, and tick labels were set to **bold**. The `hjust` argument was used to center-align the plot title.
+
+```{r}
+rp<- rp +
+theme(
+    axis.title =element_text(face="bold"),
+    plot.title = element_text(face="bold", hjust = 0.5),
+    axis.text= element_text(face="bold")
+  )
+
+
+```
+
+### 19. Final Plot!
+
+The plot object was printed to display the graph.
+
+```{r fig-scatter, fig.cap="Figure 1: Scatter plot showing the relationship between age and BMI with fitted regression line and 95% confidence interval"}
+
+ rp
+```
+
+### 20. Interpretation of the Plot
+
+As shown in `Figure 1`, the independent variable (age) was plotted on the $X$-axis, while the dependent variable (BMI) was plotted on the $Y$-axis. The plot suggests that BMI tends to increase as age increases, indicating the presence of a positive linear relationship between the two variables.
+
+However, the plot also shows that the data points are widely scattered around the regression line, indicating high variability. Furthermore, there is no strong clustering of points around the line, which supports the conclusion that the relationship is weak. A few points also appear relatively far from the regression line, suggesting the presence of possible outliers in the data set.
+
+The grey shaded area in the plot represents the confidence interval (typically 95%) around the regression line. It indicates where the average predicted value of BMI is expected to lie. This shaded region helps to assess the reliability of the trend line: narrow bands indicate higher confidence, whereas wider bands indicate lower confidence.
+
+In this case, the confidence band is relatively wide, particularly at higher age values. This suggests that there is considerable uncertainty in the estimated relationship between age and BMI, and therefore the regression line is not highly precise.
+
+### 21. Conclusion
+
+Although the plot shows a positive trend, the relatively wide confidence interval supports the conclusion that the relationship between age and BMI is weak and less reliable, consistent with the low $R^2$ value observed. As such, age alone does not adequately explain variations in BMI, and additional variables would likely be required to develop a more reliable model.
+
+### 22. Save the plot using ggsave
+
+Finally, the plot was exported as a PNG image file using the `ggsave()` function.
+
+```{r}
+ggsave("visualization.png",
+       plot = rp,
+       width = 8,
+       height = 6,
+       dpi = 300)
+```
+
+<center>
+
+**Thank you for reading!**
+
+**Let me know if you found the write-up explanatory [by sending me a message](https://www.linkedin.com/in/lydia-oyediran-414233162).**
+
+</center>
